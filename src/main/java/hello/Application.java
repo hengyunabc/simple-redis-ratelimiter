@@ -8,6 +8,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.support.atomic.RedisAtomicLong;
 
 @SpringBootApplication
 public class Application {
@@ -19,7 +20,7 @@ public class Application {
 		
 		RedisConnectionFactory redisConnectionFactory = ctx.getBean(RedisConnectionFactory.class);
 		
-		MyRedisAtomicLong counter = new MyRedisAtomicLong("counter", redisConnectionFactory);
+		RedisAtomicLong counter = new RedisAtomicLong("counter", redisConnectionFactory);
 		
 		RedisRateLimiter limiter = new RedisRateLimiter(counter, 100);
 		

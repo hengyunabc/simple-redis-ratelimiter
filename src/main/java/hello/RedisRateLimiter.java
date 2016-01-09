@@ -2,13 +2,15 @@ package hello;
 
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.redis.support.atomic.RedisAtomicLong;
+
 public class RedisRateLimiter {
 
-    MyRedisAtomicLong counter;
+    RedisAtomicLong counter;
 
     long permitsPerSecond;
 
-    public RedisRateLimiter(MyRedisAtomicLong counter, long permitsPerSecond) {
+    public RedisRateLimiter(RedisAtomicLong counter, long permitsPerSecond) {
         this.counter = counter;
         this.permitsPerSecond = permitsPerSecond;
     }
@@ -34,10 +36,13 @@ public class RedisRateLimiter {
         if (value == 1) {
             counter.expire(1, TimeUnit.SECONDS);
         }
-        Long expire = counter.getExpire(TimeUnit.MILLISECONDS);
-        // 防止 value == 0时的expire操作没有成功
-        if (expire == -1) {
-            counter.expire(1, TimeUnit.SECONDS);
+        
+        if(value > permitsPerSecond){
+            Long expire = counter.getExpire();
+            // 防止 value == 1时的expire操作没有成功
+            if (expire == -1 || expire > 1) {
+                counter.expire(1, TimeUnit.SECONDS);
+            }
         }
 
         return value <= permitsPerSecond;
